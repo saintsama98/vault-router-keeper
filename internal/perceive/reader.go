@@ -5,7 +5,7 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/saintsama98/vault-router-keeper/pkg/types"
+	"github.com/vault-router-keeper/pkg/types"
 )
 
 // Reader produces a single snapshot of vault state. The concrete implementation

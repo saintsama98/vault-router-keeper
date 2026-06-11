@@ -1,0 +1,60 @@
+[
+  {
+    "type": "function",
+    "name": "getOracleState",
+    "inputs": [
+      {
+        "name": "market",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "duration",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "increaseCardinalityRequired",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "cardinalityRequired",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "oldestObservationSatisfied",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getPtToAssetRate",
+    "inputs": [
+      {
+        "name": "market",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "duration",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  }
+]

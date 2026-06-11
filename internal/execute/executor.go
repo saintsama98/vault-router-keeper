@@ -8,7 +8,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/saintsama98/vault-router-keeper/pkg/types"
+	"github.com/vault-router-keeper/pkg/types"
 )
 
 // Executor submits a single Action and returns its tx hash.

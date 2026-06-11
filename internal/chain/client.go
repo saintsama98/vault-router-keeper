@@ -1,18 +1,16 @@
-// Package chain wraps the Ethereum RPC connection used by the perceive and
+// Package chain wraps the Ethereum RPC connection shared by the perceive and
 // execute layers.
 package chain
 
-// Client is a thin handle around the chain connection parameters.
-//
-// TODO: back this with github.com/ethereum/go-ethereum/ethclient once external
-// deps are added (`go get github.com/ethereum/go-ethereum`). Kept dependency-free
-// for now so the skeleton builds and runs offline.
-type Client struct {
-	RPCURL  string
-	ChainID int64
-}
+import (
+	"context"
 
-// New returns a chain client handle. (No dial yet — see TODO above.)
-func New(rpcURL string, chainID int64) *Client {
-	return &Client{RPCURL: rpcURL, ChainID: chainID}
+	"github.com/ethereum/go-ethereum/ethclient"
+)
+
+// Dial opens a JSON-RPC connection. The returned *ethclient.Client satisfies
+// bind.ContractBackend, so the same handle backs both the perceive ChainReader
+// (read-only eth_call) and the execute LocalExecutor (signed transactions).
+func Dial(ctx context.Context, rpcURL string) (*ethclient.Client, error) {
+	return ethclient.DialContext(ctx, rpcURL)
 }

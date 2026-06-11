@@ -3,13 +3,14 @@
 **Source of truth:** `/mnt/adiii_dev/Ethereum-dev/vault-router-keeper-research/risk-brain-architecture.md` (in the sibling research project — read it first; this plan implements it).
 **Status:** ready to execute · **Target model for build:** Sonnet (planned on Opus 4.8) · **Date:** 2026-06-09
 
+
 > **How to use this plan.** This file is self-contained: an executor agent with a fresh context can build from it without the planning conversation. Every step has a **pass/fail acceptance gate** (compile, `go vet`, or a test with a hand-computed expected value). Do not improvise scope. If a step's acceptance gate cannot be met, **stop and report** — do not skip ahead or invent APIs.
 
 ---
 
 ## 0. Global conventions (apply to every phase)
 
-- **Language:** Go 1.25, module `github.com/saintsama98/vault-router-keeper`.
+- **Language:** Go 1.25, module `github.com/vault-router-keeper`.
 - **Build gotcha:** a `go.work` at `/mnt/adiii_dev` excludes this module → **always prefix Go commands with `GOWORK=off`**.
 - **Acceptance commands (must all pass after every phase):**
   ```
