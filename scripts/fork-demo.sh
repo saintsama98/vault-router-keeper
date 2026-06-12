@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
-# fork-demo.sh — realtime end-to-end demo on an Arbitrum One fork.
+# fork-demo.sh — realtime end-to-end demo on an ETHEREUM MAINNET fork.
+# (Local replica of mainnet state — no real funds can be touched.)
 #
 # Stands up: anvil fork -> real-facet diamond (DeployFork.s.sol in the diamond
 # repo) -> keeper with composite (LIVE) risk layer -> simulated users
@@ -20,14 +21,14 @@ FOUNDRY=/mnt/adiii_dev/dev_env/foundry/bin
 DIAMOND_REPO=/mnt/adiii_dev/Ethereum-dev/vault-router-diamond
 KEEPER_REPO="$(cd "$(dirname "$0")/.." && pwd)"
 
-FORK_URL="${1:-https://arb1.arbitrum.io/rpc}"
+FORK_URL="${1:-https://ethereum-rpc.publicnode.com}"
 PORT=8549
 RPC="http://127.0.0.1:${PORT}"
 
-USDC=0xaf88d065e77c8cC2239327C5EDb3A432268e5831
-# aUSDC holds the Aave pool's USDC liquidity — impersonated as the demo's
+USDC=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
+# aEthUSDC holds the Aave pool's USDC liquidity — impersonated as the demo's
 # USDC faucet (fork-only trick; never touches a real key).
-USDC_WHALE=0x724dc807b04555b71ed48a6896b6F41593b8C637
+USDC_WHALE=0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c
 
 DEPLOYER_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 # anvil accounts #1..#3 — the fake users.
@@ -53,21 +54,19 @@ cleanup() { for p in "${PIDS[@]:-}"; do kill "$p" 2>/dev/null || true; done; }
 trap cleanup EXIT
 
 # --- 1. fork anvil -----------------------------------------------------------
-log "starting anvil fork of Arbitrum One on :$PORT"
-"$FOUNDRY/anvil" --fork-url "$FORK_URL" --port "$PORT" --chain-id 42161 --silent &
+log "starting anvil fork of Ethereum mainnet on :$PORT"
+"$FOUNDRY/anvil" --fork-url "$FORK_URL" --port "$PORT" --chain-id 1 --silent &
 PIDS+=($!)
 for _ in $(seq 1 30); do cast chain-id --rpc-url "$RPC" >/dev/null 2>&1 && break; sleep 1; done
 cast chain-id --rpc-url "$RPC" >/dev/null || { echo "anvil not ready"; exit 1; }
 
 # --- 2. deploy the real-facet diamond ---------------------------------------
-log "deploying diamond via DeployFork.s.sol (Aave + Morpho; Pendle gated off — no USDC-compatible live market)"
+log "deploying diamond via DeployFork.s.sol (Aave + Steakhouse Morpho + Pendle USD3 — all real, all default)"
 [ -f "$DIAMOND_REPO/script/DeployFork.s.sol" ] || { echo "DeployFork.s.sol missing — diamond side not ready"; exit 1; }
-# Gauntlet USDC Core (MetaMorpho, Arbitrum) — verified asset()==USDC, ~$3.2M TVL.
-export ARB_MORPHO_VAULT=0x7e97fa6893871A2751B5fE961978DCCb2c201E65
 (cd "$DIAMOND_REPO" && "$FOUNDRY/forge" script script/DeployFork.s.sol:DeployFork \
   --rpc-url "$RPC" --broadcast --private-key "$DEPLOYER_KEY" -vv)
 
-VAULT=$(python3 - "$DIAMOND_REPO/broadcast/DeployFork.s.sol/42161/run-latest.json" <<'EOF'
+VAULT=$(python3 - "$DIAMOND_REPO/broadcast/DeployFork.s.sol/1/run-latest.json" <<'EOF'
 import json, sys
 txs = json.load(open(sys.argv[1]))["transactions"]
 print(next(t["contractAddress"] for t in txs

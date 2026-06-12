@@ -61,11 +61,32 @@ func NewLocalExecutor(
 	return &LocalExecutor{vault: t, auth: auth, chainID: chainID, log: log}, nil
 }
 
+// Strategy-dispatching vault calls (rebalance/harvestAll) wrap each per-strategy
+// call in try/catch fault-tolerance (StrategyRebalanceSkipped). That breaks
+// eth_estimateGas: the estimator binary-searches for the SMALLEST gas where the
+// tx "succeeds" — and with the catch in place the tx succeeds even when the
+// inner strategy call runs OutOfGas and is silently skipped. Estimated-gas
+// rebalances therefore always skip expensive strategies (observed live: the
+// ~1.2M-gas Pendle USD3 swap OOG'd inside USDC.transferFrom while Aave/Morpho
+// fit). Fixed ceilings sidestep estimation for those two kinds; unused gas is
+// refunded, so over-provisioning costs nothing.
+const (
+	rebalanceGasLimit  = 6_000_000
+	harvestAllGasLimit = 3_000_000
+)
+
 // Execute signs and submits the transaction for one Action and returns its hash.
-// Gas, nonce and fee estimation are left to go-ethereum (auth fields nil).
+// Nonce and fee estimation are left to go-ethereum (auth fields nil); gas is
+// fixed for the fault-tolerant kinds (see above) and estimated otherwise.
 func (e *LocalExecutor) Execute(ctx context.Context, action ktypes.Action) (string, error) {
 	opts := *e.auth // copy so per-call Context never mutates the shared signer
 	opts.Context = ctx
+	switch action.Kind {
+	case ktypes.ActionRebalance:
+		opts.GasLimit = rebalanceGasLimit
+	case ktypes.ActionHarvestAll:
+		opts.GasLimit = harvestAllGasLimit
+	}
 
 	var (
 		tx  *types.Transaction

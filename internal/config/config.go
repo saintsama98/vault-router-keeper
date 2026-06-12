@@ -57,6 +57,14 @@ type Config struct {
 	CredoraAPIKey string
 	// CredoraMarkets maps a StrategyID to its Morpho market key.
 	CredoraMarkets map[types.StrategyID]string
+
+	// --- Morpho (MetaMorpho) public Blue-API yield feed ------------------------
+	// MorphoAPIEndpoint is Morpho's public GraphQL URL (no auth — unlike Credora,
+	// which stays the Morpho RISK source). Empty => yield adapter dormant and the
+	// brain sees Morpho at APY 0 (residual-budget-only in the water-fill).
+	MorphoAPIEndpoint string
+	// MorphoVaults maps a StrategyID to its MetaMorpho ERC-4626 vault address.
+	MorphoVaults map[types.StrategyID]string
 }
 
 // PendleMarket is the per-strategy Pendle handle parsed from KEEPER_PENDLE_MARKETS.
@@ -92,6 +100,9 @@ func Load() *Config {
 		CredoraEndpoint: env("KEEPER_CREDORA_ENDPOINT", ""),
 		CredoraAPIKey:   env(env("KEEPER_CREDORA_API_KEY_ENV", "KEEPER_CREDORA_API_KEY"), ""),
 		CredoraMarkets:  parseStringMap(env("KEEPER_CREDORA_MARKETS", "")),
+
+		MorphoAPIEndpoint: env("KEEPER_MORPHO_API", ""),
+		MorphoVaults:      parseStringMap(env("KEEPER_MORPHO_VAULTS", "")),
 	}
 }
 
