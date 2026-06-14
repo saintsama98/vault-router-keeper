@@ -1,4 +1,4 @@
-# Vault Router Keeper
+# Banana Markets Keeper 
 
 Off-chain agent for the Vault Router (Banana Markets) ERC-4626 diamond. It reads
 live market state, decides a risk-gated target allocation, and submits
